@@ -75,6 +75,8 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         String d = "@drawable/d";
         String e = "@drawable/e";
         String f = "@drawable/f";
+        String g = "@drawable/g";
+        String h = "@drawable/h";
 
         int image1 = getResources().getIdentifier(a, null, getPackageName());
         int image2 = getResources().getIdentifier(ba, null, getPackageName());
@@ -82,6 +84,9 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         int image4 = getResources().getIdentifier(d, null, getPackageName());
         int image5 = getResources().getIdentifier(e, null, getPackageName());
         int image6 = getResources().getIdentifier(f, null, getPackageName());
+        int image7 = getResources().getIdentifier(g, null, getPackageName());
+        int image8 = getResources().getIdentifier(h, null, getPackageName());
+
 
         Categories cat = new Categories("food and agro", image1);
         productlist.add(cat);
@@ -91,9 +96,13 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         productlist.add(cat);
         cat = new Categories("Handicrafts", image4);
         productlist.add(cat);
-        cat = new Categories("Books", image5);
+        cat = new Categories("Electronics", image5);
         productlist.add(cat);
-        cat = new Categories("Music", image6);
+        cat = new Categories("Lifestyle", image6);
+        productlist.add(cat);
+        cat = new Categories("Books", image7);
+        productlist.add(cat);
+        cat = new Categories("Music", image8);
         productlist.add(cat);
 
 

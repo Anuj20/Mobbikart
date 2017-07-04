@@ -40,8 +40,6 @@ public class CategoryviewHolder extends RecyclerView.ViewHolder implements View.
         layoutview.setOnClickListener(this);
 
         categoryName= (TextView) layoutview.findViewById(R.id.categoryname);
-       // categorySubtext= (TextView) layoutview.findViewById(R.id.Subtext);
-
         cat_image= (ImageView) layoutview.findViewById(R.id.category_image);
     }
 
@@ -51,18 +49,11 @@ public class CategoryviewHolder extends RecyclerView.ViewHolder implements View.
         //int itemPosition = mRecyclerView.getChildLayoutPosition(v);
         int position= getAdapterPosition();
         Categories categories= this.productlist.get(position);
+        String cat_name= categories.getName().toString();
 
-        switch (position){
-            case 0:
-                context.startActivity(new Intent(context, CategoryPage.class));
-                break;
-
-            case 1:
-
-
-
-
-        }
+        Intent Inte= new Intent(context, CategoryPage.class);
+        Inte.putExtra("categoryname", cat_name);
+        context.startActivity(Inte);
 
         Toast.makeText(context, "clicked: "+ position, Toast.LENGTH_SHORT).show();
     }
