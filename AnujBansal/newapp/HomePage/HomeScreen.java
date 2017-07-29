@@ -69,7 +69,7 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         mRecyclerView.setAdapter(Cda);
         Cda.notifyDataSetChanged();
 
-        String a = "@drawable/mobbik";
+      /*  String a = "@drawable/mobbik";
         String ba = "@drawable/b";
         String c = "@drawable/c";
         String d = "@drawable/d";
@@ -85,24 +85,24 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         int image5 = getResources().getIdentifier(e, null, getPackageName());
         int image6 = getResources().getIdentifier(f, null, getPackageName());
         int image7 = getResources().getIdentifier(g, null, getPackageName());
-        int image8 = getResources().getIdentifier(h, null, getPackageName());
+        int image8 = getResources().getIdentifier(h, null, getPackageName());*/
 
 
-        Categories cat = new Categories("food and agro", image1);
+        Categories cat = new Categories("food and agro", R.drawable.mobbik);
         productlist.add(cat);
-        cat = new Categories("biotech", image2);
+        cat = new Categories("biotech", R.drawable.b);
         productlist.add(cat);
-        cat = new Categories("Solar", image3);
+        cat = new Categories("Solar", R.drawable.c);
         productlist.add(cat);
-        cat = new Categories("Handicrafts", image4);
+        cat = new Categories("Handicrafts", R.drawable.d);
         productlist.add(cat);
-        cat = new Categories("Electronics", image5);
+        cat = new Categories("Electronics", R.drawable.e);
         productlist.add(cat);
-        cat = new Categories("Lifestyle", image6);
+        cat = new Categories("Lifestyle", R.drawable.f);
         productlist.add(cat);
-        cat = new Categories("Books", image7);
+        cat = new Categories("Books", R.drawable.g);
         productlist.add(cat);
-        cat = new Categories("Music", image8);
+        cat = new Categories("Music", R.drawable.h);
         productlist.add(cat);
 
 
@@ -189,7 +189,7 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.home_screen, menu);
+        getMenuInflater().inflate(R.menu.activity_home_drawer, menu);
         return true;
     }
 
@@ -202,9 +202,11 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        if (id == R.id.action_settings) {return true;}
+        else if(id==R.id.nav_home){return true;}
+        else if(id==R.id.nav_products){return true;}
+        else if(id==R.id.nav_profile){return true;}
+        else if(id==R.id.nav_aboutus){return true;}
 
         return super.onOptionsItemSelected(item);
     }

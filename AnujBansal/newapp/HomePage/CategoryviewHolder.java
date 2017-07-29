@@ -4,20 +4,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.Mobbikart.AnujBansal.newapp.Categories.CategoryPage;
 import com.Mobbikart.AnujBansal.newapp.R;
-import com.Mobbikart.AnujBansal.newapp.redundantActivities.StartActivity;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static android.media.CamcorderProfile.get;
-import static android.widget.Toast.LENGTH_SHORT;
 
 /**
  * Created by gamer on 6/29/2017.

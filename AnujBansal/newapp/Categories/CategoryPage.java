@@ -1,7 +1,6 @@
 package com.Mobbikart.AnujBansal.newapp.Categories;
 
 import android.content.Intent;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -47,13 +46,23 @@ public class CategoryPage extends AppCompatActivity {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
 
-                startActivity(new Intent(getApplicationContext(), ProductMain.class));
+               String childTitle= ListChild.get(ListHeader.get(groupPosition)).get(childPosition);
+                Intent inte= new Intent(getApplicationContext(), ProductMain.class);
+                inte.putExtra("childHeader",childTitle);
+                startActivity(inte);
+
                 Toast.makeText(getApplicationContext(),
-                        get(groupPosition) + " : " + ListChild.get(ListHeader.get(groupPosition)).get(childPosition),
+                        get(groupPosition) + " : " + childTitle ,
                         Toast.LENGTH_SHORT).show();
+                //DisplayProducts();
                 return true;
             }
         });
+    }
+
+    private void DisplayProducts() {
+
+
     }
 
     private void preparelistdata() {
@@ -75,7 +84,7 @@ public class CategoryPage extends AppCompatActivity {
                 // Adding child data
                 List<String> foodprod = new ArrayList<String>();
                 foodprod.add("Rice");
-                foodprod.add("Tea");
+                foodprod.add("pen drives");
                 foodprod.add("Pulses");
                 foodprod.add("snacks");
 
