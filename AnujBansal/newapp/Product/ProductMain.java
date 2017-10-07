@@ -8,8 +8,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,9 +35,9 @@ public class ProductMain extends AppCompatActivity {
 
     ProgressDialog Progress;
     List<Product> mDataset;
-    public static final String JSON_URL= "http://192.168.0.107/db/getdata.php?category=" ;
+    public static final String JSON_URL= "http://mobbikart.com/MobbiApp/getCategoryProducts.php?category=" ;
     private RecyclerView productrecycler;
-    private LinearLayoutManager mlayoutmanager;
+    private GridLayoutManager mGridLayout;
     private ProductAdapter pda;
     String ChildHeader;
 
@@ -52,14 +54,12 @@ public class ProductMain extends AppCompatActivity {
         productrecycler.setHasFixedSize(true);
 
         pda= new ProductAdapter(mDataset, getApplicationContext());
-        //E/RecyclerView: No adapter attached; skipping layout
-
-        mlayoutmanager= new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL,false);
-        productrecycler.setLayoutManager(mlayoutmanager);
+        mGridLayout= new GridLayoutManager(getApplicationContext(), 2);
+        productrecycler.setLayoutManager(mGridLayout);
 
 
 
-        //productrecycler.setAdapter(pda);
+        productrecycler.setAdapter(pda);
 
         ChildHeader= getIntent().getExtras().getString("childHeader");
         //JSON_URL= "http://192.168.1.5/db/getdata.php?category="+ChildHeader;
@@ -101,6 +101,8 @@ public class ProductMain extends AppCompatActivity {
       //  pda.notifyDataSetChanged();
     }
 
+    //http://192.168.1.5/db/getdata.php?category=Rice
+
     private void Fetchdata() {
 
         Progress.show();
@@ -116,20 +118,21 @@ public class ProductMain extends AppCompatActivity {
                     JSONObject jsonObject= new JSONObject(response);
                     JSONArray jsonArray= jsonObject.getJSONArray("Product");
 
+                    Progress.dismiss();
                     for(int i=0; i<jsonArray.length(); i++){
                         JSONObject obj= jsonArray.getJSONObject(i);
-                        Product productlist= new Product(obj.getString("Name"),
-                                obj.getString("Image"), obj.getString("price"),obj.getString("Description") );
+                        Product productlist= new Product(obj.optString("Name"),
+                                obj.optString("Image"), obj.optString("price"),obj.optString("Description") );
                         mDataset.add(productlist);
                     }
                     //productrecycler.setAdapter(pda);
-                    //pda.notifyDataSetChanged();
+                    pda.notifyDataSetChanged();
 
                 } catch (JSONException e) {
                     //Toast.makeText(getApplicationContext(), " catch error"+ e.getMessage(), Toast.LENGTH_LONG).show();
                     Log.e("response", Log.getStackTraceString(e));
                 }
-                pda.notifyDataSetChanged();
+               // pda.notifyDataSetChanged();
                 Progress.dismiss();
             }
         }, new Response.ErrorListener() {

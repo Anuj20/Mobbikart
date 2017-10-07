@@ -2,14 +2,9 @@ package com.Mobbikart.AnujBansal.newapp.HomePage;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.DividerItemDecoration;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -19,26 +14,41 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.Mobbikart.AnujBansal.newapp.AboutUs.Aboutus;
+import com.Mobbikart.AnujBansal.newapp.Cart.Cart;
+import com.Mobbikart.AnujBansal.newapp.Categories.CategoryPage;
 import com.Mobbikart.AnujBansal.newapp.R;
+import com.Mobbikart.AnujBansal.newapp.login_Register.LogRegSingleton;
+import com.Mobbikart.AnujBansal.newapp.login_Register.LoginHome;
+import com.Mobbikart.AnujBansal.newapp.login_Register.Sessionmanagement;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
-public class HomeScreen extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class HomeScreen extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     TextView Name, Email;
     ImageView ProfilePic;
+
+    Sessionmanagement session;
 
     GoogleApiClient googleApiClient;
 
@@ -46,6 +56,10 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
     //private LinearLayoutManager mLinearLayoutManager;
     private GridLayoutManager mGridlayout;
     private CategoriesAdapter Cda;
+    String userinfo_url= "http://192.168.1.5/db/UserinfoStore.php";
+
+
+    String sharedprefname, sharedprefemail;
 
     //private List<Categories> productlist = new ArrayList<>();
     @Override
@@ -55,56 +69,52 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        session = new Sessionmanagement(getApplicationContext());
+        HashMap<String, String> user = session.getUserDetails();
+
+        // name
+        sharedprefname = user.get(Sessionmanagement.KEY_NAME);
+        // email
+        sharedprefemail = user.get(Sessionmanagement.KEY_EMAIL);
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
+        googleApiClient= new GoogleApiClient.Builder(getApplicationContext()).enableAutoManage(this,
+                new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        Toast.makeText(getApplicationContext(), "connection failed!", Toast.LENGTH_LONG).show();
+                    }
+                }).addApi(Auth.GOOGLE_SIGN_IN_API,gso).build();
+
         mRecyclerView= (RecyclerView) findViewById(R.id.recy_category);
 
        // mLinearLayoutManager= new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false);
         mGridlayout= new GridLayoutManager(getApplicationContext(), 2);
-        mRecyclerView.hasFixedSize();
         mRecyclerView.setLayoutManager(mGridlayout);
 
         final List<Categories> productlist = new ArrayList<>();
         Cda= new CategoriesAdapter(this, productlist);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+       // mRecyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+       // mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.setAdapter(Cda);
         Cda.notifyDataSetChanged();
 
-      /*  String a = "@drawable/mobbik";
-        String ba = "@drawable/b";
-        String c = "@drawable/c";
-        String d = "@drawable/d";
-        String e = "@drawable/e";
-        String f = "@drawable/f";
-        String g = "@drawable/g";
-        String h = "@drawable/h";
-
-        int image1 = getResources().getIdentifier(a, null, getPackageName());
-        int image2 = getResources().getIdentifier(ba, null, getPackageName());
-        int image3 = getResources().getIdentifier(c, null, getPackageName());
-        int image4 = getResources().getIdentifier(d, null, getPackageName());
-        int image5 = getResources().getIdentifier(e, null, getPackageName());
-        int image6 = getResources().getIdentifier(f, null, getPackageName());
-        int image7 = getResources().getIdentifier(g, null, getPackageName());
-        int image8 = getResources().getIdentifier(h, null, getPackageName());*/
-
-
-        Categories cat = new Categories("food and agro", R.drawable.mobbik);
+        Categories cat = new Categories("FOOD AND AGRO", R.drawable.foodagro);
         productlist.add(cat);
-        cat = new Categories("biotech", R.drawable.b);
+        cat = new Categories("BIOTECH", R.drawable.biotech);
         productlist.add(cat);
-        cat = new Categories("Solar", R.drawable.c);
+        cat = new Categories("SOLAR", R.drawable.solar);
         productlist.add(cat);
-        cat = new Categories("Handicrafts", R.drawable.d);
+        cat = new Categories("HANDICRAFTS", R.drawable.handicrafts);
         productlist.add(cat);
-        cat = new Categories("Electronics", R.drawable.e);
+        cat = new Categories("ELECTRONICS", R.drawable.electronics);
         productlist.add(cat);
-        cat = new Categories("Lifestyle", R.drawable.f);
+        cat = new Categories("LIFESTYLE", R.drawable.lifestyle);
         productlist.add(cat);
-        cat = new Categories("Books", R.drawable.g);
+        cat = new Categories("BOOKS", R.drawable.books);
         productlist.add(cat);
-        cat = new Categories("Music", R.drawable.h);
+        cat = new Categories("MUSIC", R.drawable.music);
         productlist.add(cat);
-
 
         //declaring navigation drawer(important before declaring navigation Textviews and all)
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -122,18 +132,24 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
 
        Intent iin= getIntent();
         Bundle b = iin.getExtras();
-        String getName, getEmail, getPicture;
+        String getName = null;
+        String getEmail = null;
+        String getPicture;
         if(b!=null)
         {
-            if(iin.hasExtra("username") && iin.hasExtra("email") && iin.hasExtra("prof_pic")) {
+            if(iin.hasExtra("username") || iin.hasExtra("email") && iin.hasExtra("fbprof_pic") ) {
 
+                //b.getString("username");
                 getName = iin.getStringExtra("username");
                 Name.setText(getName);
                 getEmail= iin.getStringExtra("email");
                 Email.setText(getEmail);
                 getPicture= iin.getStringExtra("prof_pic");
                 Glide.with(this).load(getPicture).into(ProfilePic);
+                WelcomeToast();
 
+                // getPicture= iin.getStringExtra("prof_pic");
+                //Glide.with(this).load(getPicture).into(ProfilePic);
                /* String googleName = (String) b.get("username");
                 Name.setText(googleName);
 
@@ -148,20 +164,43 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
                 getName = iin.getStringExtra("fbusername");
                 Name.setText(getName);
                 //getEmail= iin.getStringExtra("fbemail");
+                Email.setText("Developer@mobbikart.com");
                 Email.setVisibility(View.GONE);
                 getPicture = iin.getStringExtra("fbprof_pic");
                 Glide.with(this).load(getPicture).into(ProfilePic);
+                WelcomeToast();
+            }
+            if (iin.hasExtra("clientname") && iin.hasExtra("emailid")){
+                getName= iin.getStringExtra("clientname");
+                Name.setText(getName);
+                getEmail= iin.getStringExtra("emailid");
+                Email.setText(getEmail);
+               // getPicture= iin.getStringExtra("prof_pic");
+                Glide.with(this).load(R.drawable.mobbik).into(ProfilePic);
+                WelcomeToast();
             }
         }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        final String finalGetName = getName;
+        final String finalGetEmail = getEmail;
+        StringRequest stringRequest= new StringRequest(Request.Method.POST, userinfo_url, new Response.Listener<String>() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onResponse(String response) {
             }
-        });
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params= new HashMap<String, String>();
+                params.put("name", finalGetName);
+                params.put("email", finalGetEmail);
+                return params;
+            }
+        };
+        LogRegSingleton.getInstance(HomeScreen.this).addToRequestque(stringRequest);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -170,9 +209,8 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         toggle.syncState();
     }
 
-    private int preparedata() {
-        return  2;
-
+    private void WelcomeToast() {
+        Toast.makeText(getApplicationContext(), "Welcome to Mobbikart", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -182,7 +220,25 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
             drawer.closeDrawer(GravityCompat.START);
         } else {
             moveTaskToBack(true);
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(1);
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(sharedprefname!= null) {
+            Name.setText(sharedprefname);
+            Email.setText(sharedprefemail);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Name.setText(sharedprefname);
+        Email.setText(sharedprefemail);
     }
 
     //navigation menu create
@@ -200,14 +256,12 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {return true;}
-        else if(id==R.id.nav_home){return true;}
-        else if(id==R.id.nav_products){return true;}
-        else if(id==R.id.nav_profile){return true;}
-        else if(id==R.id.nav_aboutus){return true;}
-
+        switch (id){
+            case R.id.nav_cart:
+                startActivity(new Intent(getApplicationContext(), Cart.class));
+                break;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -217,47 +271,65 @@ public class HomeScreen extends AppCompatActivity implements NavigationView.OnNa
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        Intent iin= getIntent();
+        String cat_name= (String) item.getTitle();
 
-
-        if (id == R.id.nav_home) {
+        if (id == R.id.nav_about) {
+            startActivity(new Intent(getApplicationContext(), Aboutus.class));
+           return true;
 
         } else if (id == R.id.nav_Food_agro) {
+            Intent Inte= new Intent(getApplicationContext(), CategoryPage.class);
+            Inte.putExtra("categoryname", cat_name);
+            startActivity(Inte);
 
         } else if (id == R.id.nav_Biotech) {
+            Intent Inte= new Intent(getApplicationContext(), CategoryPage.class);
+            Inte.putExtra("categoryname", cat_name);
+            startActivity(Inte);
 
         } else if (id == R.id.nav_solar) {
-
+            Intent Inte= new Intent(getApplicationContext(), CategoryPage.class);
+            Inte.putExtra("categoryname", cat_name);
+            startActivity(Inte);
         }
          else if (id == R.id.nav_handicrafts) {
+            Intent Inte= new Intent(getApplicationContext(), CategoryPage.class);
+            Inte.putExtra("categoryname", cat_name);
+            startActivity(Inte);
+        }
+        else if (id == R.id.nav_electronics) {
+            Intent Inte= new Intent(getApplicationContext(), CategoryPage.class);
+            Inte.putExtra("categoryname", cat_name);
+            startActivity(Inte);
+        }
+        else if (id == R.id.nav_lifestyle) {
+            Intent Inte= new Intent(getApplicationContext(), CategoryPage.class);
+            Inte.putExtra("categoryname", cat_name);
+            startActivity(Inte);
+        }
+        else if (id == R.id.nav_books) {
+            Intent Inte= new Intent(getApplicationContext(), CategoryPage.class);
+            Inte.putExtra("categoryname", cat_name);
+            startActivity(Inte);
+        }
+        else if (id == R.id.nav_music) {
+            Intent Inte= new Intent(getApplicationContext(), CategoryPage.class);
+            Inte.putExtra("categoryname", cat_name);
+            startActivity(Inte);
+        }
+        else if (id == R.id.nav_share) {
 
-        } else if (id == R.id.nav_electronics) {
-
-        } else if (id == R.id.nav_lifestyle) {
-
-        } else if (id == R.id.nav_books) {
-
-        } else if (id == R.id.nav_music) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_logout)
+            //TODO put playstore link
+        }
+        else if (id == R.id.nav_logout)
         {
-            if(iin.hasExtra("username") && iin.hasExtra("email") && iin.hasExtra("prof_pic")) {
-                Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(
-                        new ResultCallback<Status>() {
-                            @Override
-                            public void onResult(Status status) {
-                                // [START_EXCLUDE]
-                                //updateUI(false);
-                                // [END_EXCLUDE]
-                                Toast.makeText(getApplicationContext(), "user logged out", Toast.LENGTH_LONG).show();
-                            }
-                        });
-            }
-            else if(iin.hasExtra("fbusername")  && iin.hasExtra("prof_pic")){
-                //logout from fb
-            }
+            session.logoutUser();
+            //google sign in
+            Auth.GoogleSignInApi.signOut(googleApiClient);
+            //fb sign out
+            LoginManager.getInstance().logOut();
+            finish();
+            startActivity(new Intent(HomeScreen.this, LoginHome.class));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

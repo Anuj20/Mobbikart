@@ -25,6 +25,8 @@ public class CategoryPage extends AppCompatActivity {
     private List<String> ListHeader;
     private HashMap<String, List<String>> ListChild;
 
+    String title;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,7 +34,7 @@ public class CategoryPage extends AppCompatActivity {
 
         TextView cat = (TextView) findViewById(R.id.text_cat);
 
-        String title = getIntent().getExtras().getString("categoryname");
+        title = getIntent().getExtras().getString("categoryname");
         cat.setText(title);
 
         expandableList = (ExpandableListView) findViewById(R.id.exp_lv);
@@ -54,25 +56,25 @@ public class CategoryPage extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),
                         get(groupPosition) + " : " + childTitle ,
                         Toast.LENGTH_SHORT).show();
-                //DisplayProducts();
                 return true;
             }
         });
     }
 
-    private void DisplayProducts() {
-
-
+    @Override
+    public void onBackPressed() {
+        Intent i= new Intent(this, HomeScreen.class);
+        finish();
+        startActivity(i);
     }
+
 
     private void preparelistdata() {
         ListHeader = new ArrayList<String>();
         ListChild = new HashMap<String, List<String>>();
 
-        String title= getIntent().getExtras().getString("categoryname");
-
         switch (title){
-            case "food and agro":
+            case "FOOD AND AGRO":
                 // Adding child data
                 ListHeader.add("Food Products");
                 ListHeader.add("Personal care");
@@ -114,7 +116,6 @@ public class CategoryPage extends AppCompatActivity {
                 nutraceuticals.add("Natural food & Proteins");
                 nutraceuticals.add("Natural & Nutritious Foods");
 
-
                 List<String> hybridseeds = new ArrayList<String>();
                 hybridseeds.add("Rice");
                 hybridseeds.add("Maize");
@@ -136,7 +137,7 @@ public class CategoryPage extends AppCompatActivity {
                 ListChild.put(ListHeader.get(5),fertilizers);
                 break;
 
-            case "biotech":
+            case "BIOTECH":
 
                 ListHeader.add("Proteins");
                 ListHeader.add("Aurvedic Products");
@@ -195,25 +196,19 @@ public class CategoryPage extends AppCompatActivity {
                 ListChild.put(ListHeader.get(5), surg_devs);
 
                 break;
-            case "Solar":
+            case "SOLAR":
                 break;
-            case "Handicrafts":
+            case "HANDICRAFTS":
                 break;
-            case "Electronics":
+            case "ELECTRONICS":
                 break;
-            case "Lifestyle" :
+            case "LIFESTYLE" :
                 break;
-            case "Books":
+            case "BOOKS":
                 break;
-            case  "Music":
+            case  "MUSIC":
                 break;
 
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        Intent i= new Intent(this, HomeScreen.class);
-        startActivity(i);
     }
 }

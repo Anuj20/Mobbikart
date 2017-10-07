@@ -51,6 +51,6 @@ public class CategoryviewHolder extends RecyclerView.ViewHolder implements View.
         Inte.putExtra("categoryname", cat_name);
         context.startActivity(Inte);
 
-        Toast.makeText(context, "clicked: "+ position, Toast.LENGTH_SHORT).show();
+       // Toast.makeText(context, "clicked: "+ position, Toast.LENGTH_SHORT).show();
     }
 }

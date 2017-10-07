@@ -1,10 +1,13 @@
-package com.Mobbikart.AnujBansal.newapp.Login.PhpPackages.activity;
+package com.Mobbikart.AnujBansal.newapp.login_Register;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,11 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.Mobbikart.AnujBansal.newapp.HomePage.HomeScreen;
-import com.Mobbikart.AnujBansal.newapp.Login.PhpPackages.app.AppConfig;
-import com.Mobbikart.AnujBansal.newapp.Login.PhpPackages.app.AppController;
-import com.Mobbikart.AnujBansal.newapp.Login.PhpPackages.helper.SQLiteHandler;
-import com.Mobbikart.AnujBansal.newapp.Login.PhpPackages.helper.SessionManager;
 import com.Mobbikart.AnujBansal.newapp.R;
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -40,6 +40,7 @@ import com.facebook.FacebookSdk;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -49,30 +50,36 @@ import java.util.Map;
 
 public class LoginHome extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = Register.class.getSimpleName();
-
+    //google login
     GoogleApiClient googleApiClient;
-    private static final int REQ_CODE= 9001;
+    private static final int REQ_CODE= 1;
 
+    //fb Login
     CallbackManager callbackManager;
     LoginButton loginButton;
     private SignInButton GoogleLogin;
-    Button phpLogin;
 
+    //Native login
     EditText loginemail, loginpassword;
+    Button NativeLogin;
+    String email, password;
+
     TextView signup;
 
     ProgressDialog mProgressDialog;
 
-    private ProgressDialog pDialog;
-    private SessionManager session;
-    private SQLiteHandler db;
+    AlertDialog.Builder builder;
 
+    String login_url= "http://mobbikart.com/MobbiApp/login.php";
+
+    Sessionmanagement session;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
        // FacebookSdk.sdkInitialize(getApplicationContext());
+
+        session = new Sessionmanagement(getApplicationContext());
 
         setContentView(R.layout.activity_login_home);
 
@@ -80,52 +87,29 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
         loginpassword= (EditText) findViewById(R.id.login_pass);
         signup= (TextView) findViewById(R.id.signuptext);
 
-        phpLogin= (Button) findViewById(R.id.loginButton);
-        pDialog = new ProgressDialog(this);
-        pDialog.setCancelable(false);
+        NativeLogin= (Button) findViewById(R.id.loginButton);
 
-        db = new SQLiteHandler(getApplicationContext());
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage("Loading... please Wait");
 
-        // Session manager
-        session = new SessionManager(getApplicationContext());
-
-        // Check if user is already logged in or not
-        if (session.isLoggedIn()) {
-            // User is already logged in. Take him to main activity
-            Intent intent = new Intent(LoginHome.this, HomeScreen.class);
-            startActivity(intent);
-            finish();
-        }
+        builder= new AlertDialog.Builder(this);
 
         // Login button Click Event
-        phpLogin.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View view) {
-                String email = loginemail.getText().toString().trim();
-                String password = loginpassword.getText().toString().trim();
-
-                // Check for empty data in the form
-                if (!email.isEmpty() && !password.isEmpty()) {
-                    // login user
-                    NativeLogin(email, password);
-                } else {
-                    // Prompt user to enter credentials
-                    Toast.makeText(getApplicationContext(),
-                            "Please enter the credentials!", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        NativeLogin.setOnClickListener(this);
 
         // Link to Register Screen
         signup.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-                Intent i = new Intent(getApplicationContext(),
-                        Register.class);
-                startActivity(i);
+                Intent i = new Intent(getApplicationContext(), Register.class);
                 finish();
+                startActivity(i);
             }
         });
+
+       // Toast.makeText(getApplicationContext(), "User Login Status: " + session.isLoggedIn(), Toast.LENGTH_LONG).show();
 
         callbackManager = CallbackManager.Factory.create();
 
@@ -135,16 +119,17 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
         GoogleLogin= (SignInButton) findViewById(R.id.gmail);
         GoogleLogin.setOnClickListener(this);
 
-        GoogleSignInOptions googlesignInoptions= new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail().build();
-        googleApiClient= new GoogleApiClient.Builder(this).enableAutoManage(this,this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API,googlesignInoptions).build();
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
+        googleApiClient= new GoogleApiClient.Builder(getApplicationContext()).enableAutoManage(this,
+                new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        Toast.makeText(getApplicationContext(), "connection failed!", Toast.LENGTH_LONG).show();
+                    }
+                }).addApi(Auth.GOOGLE_SIGN_IN_API,gso).build();
     }
 
-
-    public void move (View view){
-       signOut();
-    }
 
     @Override
     public void onClick(View v) {
@@ -159,22 +144,88 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
                 break;
 
             case R.id.loginButton:
-                String email = loginemail.getText().toString().trim();
-                String password = loginpassword.getText().toString().trim();
-
-                // Check for empty data in the form
-                if (!email.isEmpty() && !password.isEmpty()) {
-                    // login user
-                    NativeLogin(email, password);
-                } else {
-                    // Prompt user to enter credentials
-                    Toast.makeText(getApplicationContext(),
-                            "Please enter the credentials!", Toast.LENGTH_LONG).show();
-                }
+                NativeLogin();
         }
     }
 
-    private void  NativeLogin(final String email, final String password) {
+    private void NativeLogin() {
+        email  = loginemail.getText().toString().trim();
+        password= loginpassword.getText().toString().trim();
+
+        // Check for empty data in the form
+        if (email.isEmpty() || password.isEmpty()) {
+            //NativeLogin(email, password);
+            // Prompt user to enter credentials
+            builder.setTitle("Something went wrong");
+            displayAlert("Please enter valid credentials!");
+            Toast.makeText(getApplicationContext(),
+                    "Please enter all the credentials!", Toast.LENGTH_LONG).show();
+        } else {
+            showProgressDialog();
+            // login user
+            StringRequest stringRequest= new StringRequest(Request.Method.POST, login_url, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    try {
+                        JSONArray jsonArray= new JSONArray(response);
+                        JSONObject jsonObject= jsonArray.getJSONObject(0);
+                        String code= jsonObject.getString("code");
+                        if(code.equals("login failed")){
+                            builder.setTitle("Login Error");
+                            displayAlert(jsonObject.getString("message"));
+                        }
+                        else {
+
+                            String name=  jsonObject.getString("Name");
+                            String email= jsonObject.getString("Email");
+                            session.createLoginSession(name, email);
+                            Intent intent= new Intent(LoginHome.this, HomeScreen.class);
+                            intent.putExtra("clientname",name);
+                            intent.putExtra("emailid",email);
+                            startActivity(intent);
+                            finish();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    hideProgressDialog();
+                    Toast.makeText(getApplicationContext(), "Error "+ error.getMessage(), Toast.LENGTH_LONG).show();
+                    error.printStackTrace();
+                }
+            }){
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params= new HashMap<String, String>();
+                    params.put("email", email);
+                    params.put("password", password);
+                    return params;
+                }
+            };
+            LogRegSingleton.getInstance(LoginHome.this).addToRequestque(stringRequest);
+
+           // Toast.makeText(getApplicationContext(),"You almost logged in", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    public void displayAlert(String message){
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+               loginemail.setText("");
+                loginpassword.setText("");
+            }
+        });
+        AlertDialog alertDialog= builder.create();
+        alertDialog.show();
+    }
+
+   /* private void  NativeLogin(final String email, final String password) {
         // Tag used to cancel the request
         String tag_string_req = "req_login";
 
@@ -254,17 +305,8 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
 
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
-    }
+    }*/
 
-    private void showDialog() {
-        if (!pDialog.isShowing())
-            pDialog.show();
-    }
-
-    private void hideDialog() {
-        if (pDialog.isShowing())
-            pDialog.dismiss();
-    }
 
     private void FbSignin(){
 
@@ -282,6 +324,7 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
                // String fbemail= prof.;
                 String fbimg= prof.getProfilePictureUri(100, 100).toString();
 
+                session.createLoginSession(fbname, "");
                 Intent fblogin= new Intent(getApplicationContext(),HomeScreen.class);
                 fblogin.putExtra("fbusername", fbname);
                 //fblogin.putExtra("fbemail",fbemail);
@@ -310,19 +353,6 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
 
     }
 
-    private void signOut() {
-        Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(
-                new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        // [START_EXCLUDE]
-                        //updateUI(false);
-                        // [END_EXCLUDE]
-                        Toast.makeText(getApplicationContext(),"user logged out", Toast.LENGTH_LONG).show();
-                    }
-                });
-    }
-
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Toast.makeText(getApplicationContext(), "login failed",Toast.LENGTH_LONG).show();
@@ -349,18 +379,30 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
            GoogleSignInAccount account = result.getSignInAccount();
             String name= account.getDisplayName().toString();
             String email= account.getEmail().toString();
-            String img= account.getPhotoUrl().toString();
+            //String img= account.getPhotoUrl().toString();
+
+            session.createLoginSession(name, email);
+            String img;
+            if(account.getPhotoUrl()==null)
+            {
+                img= ("@drawable/mobbik");
+            }else{
+               img=account.getPhotoUrl().toString();
+            }
+
+
+
             //Glide.with(this).load(img_url).into(prof_pic);
-            updateUI(true);
+            hideProgressDialog();
            Intent in= new Intent(getApplicationContext(),HomeScreen.class );
            in.putExtra("username", name);
            in.putExtra("email",email);
            in.putExtra("prof_pic", img);
            startActivity(in);
-           hideProgressDialog();
         }
         else
             Toast.makeText(getApplicationContext(),"login failed", Toast.LENGTH_LONG).show();
+        hideProgressDialog();
     }
 
    private void updateUI(boolean loginHome) {
@@ -375,10 +417,9 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
 
     private void showProgressDialog() {
         if (mProgressDialog == null) {
-            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.show();
             //mProgressDialog.setMessage(getString(R.string.loading));
-            mProgressDialog.setIndeterminate(true);
-        }
+            }
 
         mProgressDialog.show();
     }
@@ -389,4 +430,10 @@ public class LoginHome extends AppCompatActivity implements View.OnClickListener
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(1);
+    }
 }
